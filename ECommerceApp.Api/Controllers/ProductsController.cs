@@ -1,3 +1,4 @@
+using ECommerceApp.Application.Contracts;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceApp.Api.Controllers
@@ -6,16 +7,36 @@ namespace ECommerceApp.Api.Controllers
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
     {
-        [HttpGet]
-        public string GetProducts()
+        private readonly IProductRepository _repository;
+
+        public ProductsController(IProductRepository repository)
         {
-            return "";
+            _repository = repository;
+        }
+        [HttpGet]
+        public async Task<IActionResult> GetProducts()
+        {
+            var product =  await _repository.GetProductsAsync();
+            return Ok(product);
         }
 
         [HttpGet("{id}")]
-        public string GetProduct(int id)
+        public async Task<IActionResult> GetProduct(int id)
         {
-            return "";
+            
+            return Ok(await _repository.GetProductByIdAsync(id));
+        }
+
+        [HttpGet("Brands")]
+        public async Task<IActionResult> GetProductType()
+        {
+            return Ok(await _repository.GetProductTypesAsync());
+        }
+
+        [HttpGet("Types")]
+        public async Task<IActionResult> GetProductBrand()
+        {
+            return Ok(await _repository.GetProductBrandsAsync());
         }
 
     }
