@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ECommerceApp.Application.Contracts;
+using ECommerceApp.Application.Contracts.Repository;
 using ECommerceApp.Persistence.DatabaseContext;
-using ECommerceApp.Persistence.RepositoryImplementation;
+using ECommerceApp.Persistence.RepositoryImplementation.Repository;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,7 +15,9 @@ namespace ECommerceApp.Persistence
             {
                 opt.UseSqlite(conn.GetConnectionString("DefaultConnection"));
             })
-            .AddScoped<IProductRepository, ProductRepository>();
+            .AddScoped<IProductRepository, ProductRepository>()
+            .AddScoped<IProductBrandRepository, ProductBrandRepository>()
+            .AddScoped<IProductTypeRepository, ProductTypeRepository>();
         }
     }
 }   

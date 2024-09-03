@@ -1,4 +1,7 @@
 using ECommerceApp.Application.Contracts;
+using ECommerceApp.Application.Contracts.Repository;
+using ECommerceApp.Application.Dto;
+using ECommerceApp.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ECommerceApp.Api.Controllers
@@ -13,31 +16,45 @@ namespace ECommerceApp.Api.Controllers
         {
             _repository = repository;
         }
-        [HttpGet]
-        public async Task<IActionResult> GetProducts()
+        [HttpGet("GetById")]
+        public async Task<IActionResult> GetProductByIdWithInclude(int id)
         {
-            var product =  await _repository.GetProductsAsync();
-            return Ok(product);
+            //var product =  await _repository.GetProductsAsync();
+            var product = await _repository.GetByIdAsyncWithInclude(id, p => p.ProductBrand, p => p.ProductType);
+            return Ok(new ProductResponseDto()
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                PictureUrl = product.PictureUrl,
+                Price = product.Price,
+                ProductBrand = product.ProductBrand.Name,
+                ProductType = product.ProductType.Name,
+
+
+            });
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetProduct(int id)
+        [HttpGet("GellAllProducts")]
+        public async Task<IActionResult> GetAllProductWithInclude()
         {
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
             
-            return Ok(await _repository.GetProductByIdAsync(id));
-        }
 
-        [HttpGet("Brands")]
-        public async Task<IActionResult> GetProductType()
-        {
-            return Ok(await _repository.GetProductTypesAsync());
+            var product = await _repository.GetAllAsyncWithInclude(p => p.ProductBrand, p => p.ProductType);
+            return Ok(product.Select
+            (
+                product => new ProductResponseDto()
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Description = product.Description,
+                    PictureUrl = $"{baseUrl}/{product.PictureUrl}",
+                    Price = product.Price,
+                    ProductBrand = product.ProductBrand.Name,
+                    ProductType = product.ProductType.Name,
+                }
+            ));
         }
-
-        [HttpGet("Types")]
-        public async Task<IActionResult> GetProductBrand()
-        {
-            return Ok(await _repository.GetProductBrandsAsync());
-        }
-
     }
 }

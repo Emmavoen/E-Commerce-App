@@ -1,16 +1,16 @@
-using ECommerceApp.Application.Contracts;
+using ECommerceApp.Application.Contracts.Repository;
 using ECommerceApp.Domain.Entities;
 using ECommerceApp.Persistence.DatabaseContext;
+using ECommerceApp.Persistence.RepositoryImplementation.GenericRepository;
 using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
 
-namespace ECommerceApp.Persistence.RepositoryImplementation
+namespace ECommerceApp.Persistence.RepositoryImplementation.Repository
 {
-    public class ProductRepository : IProductRepository
+    public class ProductRepository : GenericRepository<Product>,IProductRepository
     {
         private readonly AppDbContext _context;
 
-        public ProductRepository(AppDbContext context)
+        public ProductRepository(AppDbContext context) : base(context)
         {
             _context = context;
         }
