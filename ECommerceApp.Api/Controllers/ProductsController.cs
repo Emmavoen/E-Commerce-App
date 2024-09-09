@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using ECommerceApp.Application.Contracts;
 using ECommerceApp.Application.Contracts.Repository;
 using ECommerceApp.Application.Dto;
@@ -36,25 +37,27 @@ namespace ECommerceApp.Api.Controllers
         }
 
         [HttpGet("GellAllProducts")]
-        public async Task<IActionResult> GetAllProductWithInclude()
+        public async Task<IActionResult> GetPaginatedAsync(int? brandId = null, int? typeId = null,
+        string searchTerm = null,
+        int pageNumber = 1,int pageSize = 10,string sortBy = "Name",bool ascending = true)
         {
             var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.PathBase}";
-            
 
-            var product = await _repository.GetAllAsyncWithInclude(p => p.ProductBrand, p => p.ProductType);
-            return Ok(product.Select
-            (
-                product => new ProductResponseDto()
-                {
-                    Id = product.Id,
-                    Name = product.Name,
-                    Description = product.Description,
-                    PictureUrl = $"{baseUrl}/{product.PictureUrl}",
-                    Price = product.Price,
-                    ProductBrand = product.ProductBrand.Name,
-                    ProductType = product.ProductType.Name,
-                }
-            ));
+            Expression<Func<Product, bool>> filter = p =>
+            (!brandId.HasValue || p.ProductBrandId == brandId.Value) &&
+            (!typeId.HasValue || p.ProductTypeId == typeId.Value)
+            &&(string.IsNullOrEmpty(searchTerm) || p.Name.Contains(searchTerm) || p.Description.Contains(searchTerm));
+
+            Expression<Func<Product, object>> orderBy = sortBy switch
+            {
+                "Price" => p => p.Price,
+                "Name" => p => p.Name,
+                _ => p => p.Name // Default sorting by Name
+            };
+            // var product = await _repository.GetAllAsyncWithInclude(filter,orderBy, ascending, 
+            // p => p.ProductBrand, p => p.ProductType);
+            var product = await _repository.GetPaginatedAsync(filter,pageNumber,pageSize,orderBy,ascending);
+            return Ok(product);
         }
     }
 }

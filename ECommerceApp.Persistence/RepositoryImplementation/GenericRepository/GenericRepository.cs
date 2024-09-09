@@ -1,7 +1,9 @@
 using System.Linq.Expressions;
 using ECommerceApp.Application.Contracts.GenericRepository;
+using ECommerceApp.Application.Helper;
 using ECommerceApp.Persistence.DatabaseContext;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 
 namespace ECommerceApp.Persistence.RepositoryImplementation.GenericRepository
 {
@@ -61,7 +63,8 @@ namespace ECommerceApp.Persistence.RepositoryImplementation.GenericRepository
             return await query.FirstOrDefaultAsync(e => EF.Property<int>(e, "Id") == id);
         }
 
-        public async Task<IEnumerable<T>> GetAllAsyncWithInclude(params Expression<Func<T, object>>[] includes)
+        public async Task<IEnumerable<T>> GetAllAsyncWithInclude(Expression<Func<T, bool>> filter = null,Expression<Func<T,
+        object>> orderBy = null, bool ascending = true,params Expression<Func<T, object>>[] includes)
         {
             IQueryable<T> query = _dbSet;
 
@@ -70,10 +73,55 @@ namespace ECommerceApp.Persistence.RepositoryImplementation.GenericRepository
                 query = query.Include(include);
             }
 
+            if(filter != null)
+            {
+                query = query.Where(filter);
+            }
+            if (orderBy != null)
+            {
+                query = ascending ? query.OrderBy(orderBy) : query.OrderByDescending(orderBy);
+            }
             return await query.ToListAsync();
         }
 
+
+        public async Task<PaginatedList<T>> GetPaginatedAsync(
+        Expression<Func<T, bool>> predicate,
+        int pageNumber,
+        int pageSize,
+        Expression<Func<T, object>> orderBy = null,
+        bool ascending = true,
+        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
+    {
+        IQueryable<T> query = _dbSet;
+
         
+        if (include != null)
+        {
+            query = include(query);
+        }
+
+        
+        if (predicate != null)
+        {
+            query = query.Where(predicate);
+        }
+
+        
+        if (orderBy != null)
+        {
+            query = ascending ? query.OrderBy(orderBy) : query.OrderByDescending(orderBy);
+        }
+
+        var count = await query.CountAsync();
+        var items = await query.Skip((pageNumber - 1) * pageSize)
+                               .Take(pageSize)
+                               .ToListAsync();
+
+        return new PaginatedList<T>(items, count, pageNumber, pageSize);
+    }
+
+
     }
 
 }

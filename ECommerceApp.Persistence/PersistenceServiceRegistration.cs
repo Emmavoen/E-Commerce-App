@@ -17,7 +17,8 @@ namespace ECommerceApp.Persistence
             })
             .AddScoped<IProductRepository, ProductRepository>()
             .AddScoped<IProductBrandRepository, ProductBrandRepository>()
-            .AddScoped<IProductTypeRepository, ProductTypeRepository>();
+            .AddScoped<IProductTypeRepository, ProductTypeRepository>()
+            ;
         }
     }
 }   
