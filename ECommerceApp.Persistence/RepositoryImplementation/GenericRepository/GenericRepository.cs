@@ -91,15 +91,15 @@ namespace ECommerceApp.Persistence.RepositoryImplementation.GenericRepository
         int pageSize,
         Expression<Func<T, object>> orderBy = null,
         bool ascending = true,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null)
+        params Expression<Func<T, object>>[] includes)
     {
         IQueryable<T> query = _dbSet;
 
         
-        if (include != null)
-        {
-            query = include(query);
-        }
+        foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
 
         
         if (predicate != null)

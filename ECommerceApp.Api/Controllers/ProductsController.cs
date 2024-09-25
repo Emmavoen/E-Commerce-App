@@ -2,8 +2,10 @@ using System.Linq.Expressions;
 using ECommerceApp.Application.Contracts;
 using ECommerceApp.Application.Contracts.Repository;
 using ECommerceApp.Application.Dto;
+using ECommerceApp.Application.Helper;
 using ECommerceApp.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerceApp.Api.Controllers
 {
@@ -54,10 +56,22 @@ namespace ECommerceApp.Api.Controllers
                 "Name" => p => p.Name,
                 _ => p => p.Name // Default sorting by Name
             };
-            // var product = await _repository.GetAllAsyncWithInclude(filter,orderBy, ascending, 
-            // p => p.ProductBrand, p => p.ProductType);
-            var product = await _repository.GetPaginatedAsync(filter,pageNumber,pageSize,orderBy,ascending);
-            return Ok(product);
+            var product = await _repository.GetPaginatedAsync(filter,pageNumber,pageSize,orderBy,ascending,p=> p.ProductBrand, p =>p.ProductType);
+            var items = product.Items.Select(p => new ProductResponseDto
+            { 
+                Id = p.Id,
+                Name = p.Name,
+                Description = p.Description,
+                Price = p.Price,
+                PictureUrl = baseUrl + "/" + p.PictureUrl,
+                ProductType = p.ProductType?.Name ?? "unknown", 
+                ProductBrand = p.ProductBrand?.Name ?? "unknown",
+
+
+            }).ToList();
+
+            return Ok(new PaginatedList<ProductResponseDto>(items,product.TotalCount,pageNumber,pageSize));
+            //return Ok(product);
         }
     }
 }

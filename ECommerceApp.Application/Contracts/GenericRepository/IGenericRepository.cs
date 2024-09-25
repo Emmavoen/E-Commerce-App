@@ -26,6 +26,6 @@ namespace ECommerceApp.Application.Contracts.GenericRepository
         int pageSize,
         Expression<Func<T, object>> orderBy = null,
         bool ascending = true,
-        Func<IQueryable<T>, IIncludableQueryable<T, object>> include = null);
+        params Expression<Func<T, object>>[] includes);
     }
 }
